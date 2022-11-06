@@ -6,19 +6,16 @@ const scriptDir = __dirname + path.sep
 const sourceDir = scriptDir +  'files'
 const destDir = scriptDir + 'files-copy'
 
-fs.promises.mkdir(destDir, { recursive: true })
-  .then((dirName) => {
-    return fs.promises.readdir(sourceDir)
-  }).then((files) => {
-  files.forEach((file) => {
-    return copyFile(sourceDir + path.sep + file, destDir + path.sep + file)
-  })
-  fs.promises.readdir(destDir).then((copiedFiles) => {
-    copiedFiles.forEach((copiedFile) => {
-      if(!files.includes(copiedFile)){
-        return fs.promises.rm(destDir + path.sep + copiedFile)
-      }
+fs.promises.rm(destDir, {recursive: true, force: true})
+    .then(() => fs.promises.mkdir(destDir, {recursive: true}))
+    .then(() => fs.promises.readdir(sourceDir, {withFileTypes: true}))
+    .then((files) => {
+      files.forEach((file) => {
+        if (file.isDirectory()) {
+          copyDir(sourceDir + path.sep + file.name, destDir + path.sep + file.name)
+        } else {
+          copyFile(sourceDir + path.sep + file.name, destDir + path.sep + file.name)
+        }
+      })
     })
-  })
-})
 
